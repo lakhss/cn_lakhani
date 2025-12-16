@@ -90,7 +90,23 @@ int main(int argc,char *argv[])
 
   /* LU for tridiagonal matrix (can replace dgbtrf_) - custom implementation */
   if (IMPLEM == TRI) {
+    printf("----- value of AB initially ----- \n");
+    for (int i = 0; i < (la)*(lab); i+=4){
+      printf("%f ", AB[i]);
+      printf("%f ", AB[i+1]);
+      printf("%f ", AB[i+2]);
+      printf("%f ", AB[i+3]);
+      printf("\n");
+    }
     dgbtrftridiag(&la, &la, &kl, &ku, AB, &lab, ipiv, &info);
+    printf("----- value of AB after factorization ----- \n");
+    for (int i = 0; i < (la)*(lab); i+=4){
+      printf("%f ", AB[i]);
+      printf("%f ", AB[i+1]);
+      printf("%f ", AB[i+2]);
+      printf("%f ", AB[i+3]);
+      printf("\n");
+    }
   }
 
   /* Back-substitution to solve the system after factorization */
