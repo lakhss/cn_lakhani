@@ -70,12 +70,19 @@ double relative_forward_error(double* x, double* y, int* la){
   // TODO: Compute the relative error using BLAS functions (dnrm2, daxpy or manual loop)
 
 int indexABCol(int i, int j, int *lab){
+  return j*(*lab)+i;
   // TODO: Return the correct index formula for column-major band storage
-  return 0;
 }
 
 int dgbtrftridiag(int *la, int*n, int *kl, int *ku, double *AB, int *lab, int *ipiv, int *info){
-  /*
+  for (int i = 0; i < sizeof(ipiv); i++){
+    ipiv[i]=i+1;
+  }
+  for (int i = 0; i < sizeof(ipiv); i++){
+    printf("%d ", ipiv[i]);
+    printf("\n");
+  }
+
   AB[2] = AB[2];
   AB[3] = AB[3]/AB[2];
   for (int i = 4; i < (*la)*(*lab); i+=4){
@@ -84,6 +91,5 @@ int dgbtrftridiag(int *la, int*n, int *kl, int *ku, double *AB, int *lab, int *i
     AB[i+3] = AB[i+3]/AB[i+2];
   }
   // TODO: Implement specialized LU factorization for tridiagonal matrices
-  */
-  return *info;
+  return 0;
 }
