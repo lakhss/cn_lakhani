@@ -5,6 +5,7 @@
 /* using direct methods (LU factorization)*/
 /******************************************/
 #include "lib_poisson1D.h"
+#include <time.h>
 
 #define TRF 0  /* Use LAPACK dgbtrf for LU factorization */
 #define TRI 1  /* Use custom tridiagonal LU factorization */
@@ -83,6 +84,8 @@ int main(int argc,char *argv[])
   printf("Solution with LAPACK\n");
   ipiv = (int *) calloc(la, sizeof(int));  /* Pivot indices for LU factorization */
 
+  /* Print check */
+
   printf("----- value of AB initially ----- \n");
     for (int i = 0; i < (la)*(lab); i+=4){
       printf("%f ", AB[i]);
@@ -94,19 +97,31 @@ int main(int argc,char *argv[])
 
   /* LU Factorization using LAPACK's general band factorization */
   if (IMPLEM == TRF) {
+    clock_t t1 = clock();
     dgbtrf_(&la, &la, &kl, &ku, AB, &lab, ipiv, &info);
+    clock_t t2 = clock();
+    double time_dgbtrf = (double)(t2-t1) / CLOCKS_PER_SEC;
+    printf(" Execution time of dgbtrf = %f seconds\n", time_dgbtrf);
   }
 
   /* LU for tridiagonal matrix (can replace dgbtrf_) - custom implementation */
   if (IMPLEM == TRI) {
+    clock_t t3 = clock();
     dgbtrftridiag(&la, &la, &kl, &ku, AB, &lab, ipiv, &info);
+    clock_t t4 = clock();
+    double time_dgbtrftridiag = (double)(t4-t3) / CLOCKS_PER_SEC;
+    printf(" Execution time of dgbtrf (personal implementation) = %f seconds\n", time_dgbtrftridiag);
   }
 
   /* Back-substitution to solve the system after factorization */
   if (IMPLEM == TRI || IMPLEM == TRF){
     /* Solution (Triangular) - solve using the LU factors */
     if (info==0){
+      clock_t t5 = clock();
       dgbtrs_("N", &la, &kl, &ku, &NRHS, AB, &lab, ipiv, RHS, &la, &info);
+      clock_t t6 = clock();
+      double time_dgbtrs = (double)(t6-t5) / CLOCKS_PER_SEC;
+      printf(" Execution time of dgbtrs = %f seconds\n", time_dgbtrs);
       if (info!=0){printf("\n INFO DGBTRS = %d\n",info);}
     }else{
       printf("\n INFO = %d\n",info);
@@ -115,9 +130,16 @@ int main(int argc,char *argv[])
 
   /* Alternative: solve directly using dgbsv */
   if (IMPLEM == SV) {
+    clock_t t7 = clock();
     dgbsv_(&la, &kl, &ku, &NRHS, AB, &lab, ipiv, RHS, &la, &info);
+    clock_t t8 = clock();
+    double time_dgbsv = (double)(t8-t7) / CLOCKS_PER_SEC;
+    printf(" Execution time of dgbsv = %f seconds\n", time_dgbsv);
+
     // TODO : use dgbsv
   }
+
+  /* Print check */
 
   printf("----- value of AB after factorization ----- \n");
     for (int i = 0; i < (la)*(lab); i+=4){
@@ -128,6 +150,7 @@ int main(int argc,char *argv[])
       printf("\n");
     }
 
+  
   /* Write results to files */
   write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "LU.dat");  /* LU factors */
   write_xy(RHS, X, &la, "SOL.dat");  /* Solution at grid points (RHS now contains solution) */

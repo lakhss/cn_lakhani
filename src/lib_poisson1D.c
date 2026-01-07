@@ -7,6 +7,7 @@
 #include <cblas.h>
 
 void set_GB_operator_colMajor_poisson1D(double* AB, int *lab, int *la, int *kv){
+  /*
   //AB = malloc ((*lab)*(*la+(*kv))*sizeof(double));
   AB[0] = 0;
   AB[1] = 0;
@@ -20,16 +21,51 @@ void set_GB_operator_colMajor_poisson1D(double* AB, int *lab, int *la, int *kv){
   }
   AB[(*lab)*(*la)-3] = -1;
   AB[(*lab)*(*la)-2] = 2;
-  AB[(*lab)*(*la)-1] = 0;
+  AB[(*lab)*(*la)-1] = 0; 
+  */
   // TODO: Fill AB with the tridiagonal Poisson operator
+  /* Correction */
+  int ii, jj, kk;
+  for (jj=0;jj<(*la);jj++){
+    kk = jj*(*lab);
+    if (*kv>=0){
+      for (ii=0;ii< *kv;ii++){
+	      AB[kk+ii]=0.0;
+      }
+    }
+    AB[kk+ *kv]=-1.0;
+    AB[kk+ *kv+1]=2.0;
+    AB[kk+ *kv+2]=-1.0;
+  }
+  AB[0]=0.0;
+  if (*kv == 1) {AB[1]=0;}
+  
+  AB[(*lab)*(*la)-1]=0.0;
 }
 
 void set_GB_operator_colMajor_poisson1D_Id(double* AB, int *lab, int *la, int *kv){
+  /*
   for (int i = 0; i < (*lab)*(*la); i = 1 + i + (*lab)){
     AB[i] = 1;
-  }
+  } */
   // TODO: Fill AB with the identity matrix
   // Only the main diagonal should have 1, all other entries are 0
+  /* Correction */
+  int ii, jj, kk;
+  for (jj=0;jj<(*la);jj++){
+    kk = jj*(*lab);
+    if (*kv>=0){
+      for (ii=0;ii< *kv;ii++){
+	AB[kk+ii]=0.0;
+      }
+    }
+    AB[kk+ *kv]=0.0;
+    AB[kk+ *kv+1]=1.0;
+    AB[kk+ *kv+2]=0.0;
+  }
+  AB[1]=0.0;
+  AB[(*lab)*(*la)-1]=0.0;
+  
 }
 
 void set_dense_RHS_DBC_1D(double* RHS, int* la, double* BC0, double* BC1){
@@ -78,10 +114,6 @@ int dgbtrftridiag(int *la, int*n, int *kl, int *ku, double *AB, int *lab, int *i
   for (int i = 0; i < sizeof(ipiv); i++){
     ipiv[i]=i+1;
   }
-  for (int i = 0; i < sizeof(ipiv); i++){
-    printf("%d ", ipiv[i]);
-    printf("\n");
-  }
 
   AB[2] = AB[2];
   AB[3] = AB[3]/AB[2];
@@ -90,6 +122,8 @@ int dgbtrftridiag(int *la, int*n, int *kl, int *ku, double *AB, int *lab, int *i
     AB[i+2] = AB[i+2] - AB[i-1]*AB[i+1];
     AB[i+3] = AB[i+3]/AB[i+2];
   }
+
+  *info = 0;
   // TODO: Implement specialized LU factorization for tridiagonal matrices
-  return 0;
+  return *info;
 }

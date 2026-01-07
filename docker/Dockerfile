@@ -10,4 +10,4 @@ ENV HOSTNAME=ambre
 RUN mkdir bin && \
   make all && \
   make run
-RUN bin/tpPoisson1D_direct 2
+RUN bin/tpPoisson1D_iter 0

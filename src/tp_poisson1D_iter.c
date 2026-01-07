@@ -5,6 +5,7 @@
 /* iterative methods (Richardson)         */
 /******************************************/
 #include "lib_poisson1D.h"
+#include "math.h"
 
 #define ALPHA 0  /* Richardson iteration with optimal alpha */
 #define JAC 1    /* Richardson with Jacobi preconditioning */
@@ -91,8 +92,7 @@ int main(int argc,char *argv[])
 
   /* Computation of optimum alpha */
   opt_alpha = richardson_alpha_opt(&la);
-  printf("Optimal alpha for simple Richardson iteration is : %lf",opt_alpha); 
-
+  printf("Optimal alpha for simple Richardson iteration is : %lf\n",opt_alpha); 
   /* Solve with Richardson iteration parameters */
   double tol=1e-3;      /* Convergence tolerance for residual norm */
   int maxit=1000;       /* Maximum number of iterations */
@@ -101,8 +101,21 @@ int main(int argc,char *argv[])
 
   resvec=(double *) calloc(maxit, sizeof(double));
 
+  printf("----- SOL before richardson -----\n");
+  for (int i = 0; i < la; i++){
+    printf("%f \n",SOL[i]);
+
+  }
+
+  printf("----- RESVEC before richardson -----\n");
+  for (int i = 0; i < la; i++){
+    printf("%f \n",resvec[i]);
+
+  }
+
   /* Solve with Richardson alpha (simple Richardson with optimal alpha) */
   if (IMPLEM == ALPHA) {
+    // printf("-----ALPHA-----\n");
     richardson_alpha(AB, RHS, SOL, &opt_alpha, &lab, &la, &ku, &kl, &tol, &maxit, resvec, &nbite);
   }
 
@@ -117,10 +130,42 @@ int main(int argc,char *argv[])
   /* Extract preconditioner matrix based on method */
   if (IMPLEM == JAC) {
     /* Jacobi: MB = D (diagonal of A) */
+    printf("---- Jacobi MB = Diagonal of A ----\n");
     extract_MB_jacobi_tridiag(AB, MB, &lab, &la, &ku, &kl, &kv);
+    printf("---- AB ----\n");
+    for (int i = 0; i < (la)*(lab); i+=3){
+      printf("%f ", AB[i]);
+      printf("%f ", AB[i+1]);
+      printf("%f ", AB[i+2]);
+      printf("\n");
+    }
+    printf("---- MB ----\n");
+    for (int i = 0; i<la*lab; i+=3){
+      printf("%f ", MB[i]);
+      printf("%f ", MB[i+1]);
+      printf("%f ", MB[i+2]);
+      printf("\n");
+    }
+
+
   } else if (IMPLEM == GS) {
     /* Gauss-Seidel: MB = D - E (lower triangular + diagonal) */
+    printf("--- gs_tridiag ---\n");
     extract_MB_gauss_seidel_tridiag(AB, MB, &lab, &la, &ku, &kl, &kv);
+    printf("---- AB ----\n");
+    for (int i = 0; i < (la)*(lab); i+=3){
+      printf("%f ", AB[i]);
+      printf("%f ", AB[i+1]);
+      printf("%f ", AB[i+2]);
+      printf("\n");
+    }
+    printf("---- MB ----\n");
+    for (int i = 0; i<la*lab; i+=3){
+      printf("%f ", MB[i]);
+      printf("%f ", MB[i+1]);
+      printf("%f ", MB[i+2]);
+      printf("\n");
+    }
   }
 
   /* Solve with General Richardson (preconditioned) */
@@ -134,6 +179,18 @@ int main(int argc,char *argv[])
 
   /* Write convergence history */
   write_vec(resvec, &nbite, "RESVEC.dat");     /* Residual norm at each iteration */
+
+  printf("----- SOL after richardson -----\n");
+  for (int i = 0; i < la; i++){
+    printf("%f \n",SOL[i]);
+
+  }
+
+  printf("----- RESVEC after richardson -----\n");
+  for (int i = 0; i < la; i++){
+    printf("%f \n",resvec[i]);
+
+  }
 
   /* Free allocated memory */
   free(resvec);
